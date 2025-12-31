@@ -1,0 +1,8 @@
+[00:00:15] Sarah: Okay, let's get started. The main goal today is to decide on the database for the new microservice.
+[00:00:30] Mike: I've looked into both, and I think PostgreSQL is the robust choice here.
+[00:00:45] Sarah: Agreed. Let's make that the decision. We'll go with PostgreSQL.
+[00:01:00] Sarah: Also, someone needs to update the API docs.
+[00:01:10] Mike: I can do that by Monday.
+[00:01:20] Sarah: Great. And what about the latency issue?
+[00:01:25] Mike: I'm not sure who should handle that yet.
+[00:01:30] Sarah: Okay, we'll figure that out later.
