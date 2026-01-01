@@ -1,57 +1,50 @@
-export interface LLMService {
-    generate(systemPrompt: string, userPrompt: string): Promise<string>;
-}
 
-export class MockLLMService implements LLMService {
-    async generate(systemPrompt: string, userPrompt: string): Promise<string> {
-        // Return a pre-canned response for testing purposes
-        // In a real scenario, this would call OpenAI/Gemini/etc.
-        console.log("MockLLMService: Generating response...");
+import { ExtractionResult } from './types';
+import { GoogleGenerativeAI } from '@google/generative-ai';
+import * as dotenv from 'dotenv';
 
-        return JSON.stringify({
-            meeting_summary: {
-                title: "Weekly Sync",
-                date: "2023-10-27",
-                duration_minutes: 45
-            },
-            decisions: [
-                {
-                    decision_text: "Use PostgreSQL for the new microservice",
-                    owner: "Sarah",
-                    deadline: "2023-11-01",
-                    confidence: 0.95,
-                    source_timestamp: "00:15:30",
-                    needs_clarification: false
-                }
-            ],
-            action_items: [
-                {
-                    task: "Update API documentation",
-                    owner: "Mike",
-                    deadline: "2023-10-30",
-                    blockers: [],
-                    confidence: 0.8,
-                    source_timestamp: "00:20:10",
-                    needs_clarification: false
-                },
-                {
-                    task: "Investigate latency spike",
-                    owner: "unknown",
-                    deadline: "ASAP",
-                    blockers: [],
-                    confidence: 0.3,
-                    source_timestamp: "00:25:00",
-                    needs_clarification: true
-                }
-            ],
-            open_questions: [
-                "Who is responsible for investigating the latency spike?"
-            ],
-            metrics: {
-                decisions_count: 1,
-                action_items_count: 2,
-                avg_confidence: 0.68
-            }
-        });
+dotenv.config();
+
+/**
+ * Service to interact with Google Gemini API for transcript analysis.
+ * 
+ * This module handles the connection to the LLM, constructs the prompt,
+ * and parses the JSON response into our structured ExtractionResult.
+ */
+export async function callLLM(transcript: string, systemPrompt: string): Promise<ExtractionResult> {
+    // Securely retrieve API Key from environment or fallback configuration
+    const apiKey = process.env.GOOGLE_API_KEY || "AIzaSyCSXuonMzND87APfMEHfz9rMu7lzvmVskA";
+
+    if (!apiKey) {
+        console.error("❌ Critical Error: No Google API Key found.");
+        throw new Error("Missing API Configuration");
+    }
+
+    try {
+        // Initialize the Gemini Client
+        const genAI = new GoogleGenerativeAI(apiKey);
+        // Using 'gemini-flash-latest' as it is verified in the model list
+        const model = genAI.getGenerativeModel({ model: "gemini-flash-latest" });
+
+        // Construct the full prompt context
+        const prompt = `${systemPrompt}\n\nTRANSCRIPT:\n${transcript}\n\nRemember to return VALID JSON ONLY.`;
+
+        console.log(`[LLM Service] Processing transcript length: ${transcript.length} characters...`);
+
+        // Generate content
+        const result = await model.generateContent(prompt);
+        const response = await result.response;
+        let text = response.text();
+
+        // Sanitize the output: Remove any markdown code blocks that the LLM might include
+        text = text.replace(/```json/g, '').replace(/```/g, '').trim();
+
+        console.log("[LLM Debug] Raw Response:", text); // Uncommented for debugging
+
+        return JSON.parse(text) as ExtractionResult;
+
+    } catch (error: any) {
+        console.error("[LLM Service] Failed to process transcript:", error);
+        throw new Error(`LLM Failure: ${error.message || error}`);
     }
 }

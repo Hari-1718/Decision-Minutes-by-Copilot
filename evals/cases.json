@@ -1,0 +1,61 @@
+[
+    {
+        "id": "clear_decisions_1",
+        "description": "Simple meeting with clear decisions and owners",
+        "transcript_snippet": "Okay everyone. Let's wrap up. Sarah, you're going to finalize the Q3 budget by Friday. Tom will draft the press release. And we all agreed to switch the weekly sync to Tuesdays at 10 AM.",
+        "expected": {
+            "decisions": [
+                {
+                    "content": "Switch weekly sync to Tuesdays at 10 AM",
+                    "confidence": 1.0
+                }
+            ],
+            "action_items": [
+                {
+                    "content": "Finalize Q3 budget",
+                    "owner": "Sarah",
+                    "deadline": "Friday",
+                    "confidence": 1.0
+                },
+                {
+                    "content": "Draft press release",
+                    "owner": "Tom",
+                    "deadline": null,
+                    "confidence": 1.0
+                }
+            ]
+        }
+    },
+    {
+        "id": "ambiguous_1",
+        "description": "Discussion without clear resolution",
+        "transcript_snippet": "We should probably look into React Native. I don't know, Flutter might be better. Yeah, let's keep researching and decide next week.",
+        "expected": {
+            "decisions": [],
+            "action_items": [
+                {
+                    "content": "Research React Native vs Flutter",
+                    "owner": null,
+                    "deadline": "next week",
+                    "confidence": 0.8
+                }
+            ]
+        }
+    },
+    {
+        "id": "correction_1",
+        "description": "Decision made then modified",
+        "transcript_snippet": "I'll take the lead on the frontend. Actually, wait, I'm swamped. Mike, can you handle the frontend? Sure, I'll do it.",
+        "expected": {
+            "decisions": [],
+            "action_items": [
+                {
+                    "content": "Handle the frontend",
+                    "owner": "Mike",
+                    "deadline": null,
+                    "confidence": 0.9
+                }
+            ]
+        }
+    }
+]

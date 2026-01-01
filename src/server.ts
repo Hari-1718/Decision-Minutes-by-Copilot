@@ -1,46 +1,47 @@
+
 import express from 'express';
 import cors from 'cors';
 import { DecisionExtractor } from './extractor';
-import { MockLLMService } from './llm';
-import { Context } from './types';
 
+// Initialize Express App
 const app = express();
-const port = 3001;
+const PORT = process.env.PORT || 3001;
 
-app.use(cors());
-app.use(express.json());
+// Service Dependencies
+const extractor = new DecisionExtractor();
 
-// Initialize services (Dependency Injection)
-// In a real production app, we might use a container like InversifyJS
-// For now, we manually inject the MockLLMService. 
-// TODO: Replace MockLLMService with OpenAI/Gemini adapter in production.
-const llmService = new MockLLMService();
-const extractor = new DecisionExtractor(llmService);
+// Middleware Configuration
+app.use(cors()); // Allow cross-origin requests from Frontend
+app.use(express.json()); // Parse JSON request bodies
 
+/**
+ * API Endpoint: POST /api/analyze
+ * Accepts a meeting transcript and processes it to find decisions and action items.
+ */
 app.post('/api/analyze', async (req, res) => {
     try {
         const { transcript, context } = req.body;
 
-        if (!transcript) {
-            return res.status(400).json({ error: 'Transcript is required' });
+        // Input Validation
+        if (!transcript || typeof transcript !== 'string') {
+            return res.status(400).json({ error: 'Invalid transcript input' });
         }
 
-        // Default context if not provided
-        const safeContext: Context = context || {
-            project_name: "Unknown Project",
-            meeting_type: "other"
-        };
+        console.log(`[API] Received request. Processing ${transcript.length} chars...`);
 
-        console.log(`Analyzing transcript... (Length: ${transcript.length})`);
-        const result = await extractor.extract(transcript, safeContext);
+        // Business Logic Execution
+        const result = await extractor.extract(transcript);
 
+        // Success Response
         res.json(result);
-    } catch (error) {
-        console.error('API Error:', error);
-        res.status(500).json({ error: 'Failed to analyze transcript' });
+
+    } catch (error: any) {
+        console.error('[API] Analysis failed:', error);
+        res.status(500).json({ error: error.message || 'Internal Server Error' });
     }
 });
 
-app.listen(port, () => {
-    console.log(`Decision-Minutes Copilot API running at http://localhost:${port}`);
+// Server Initialization
+app.listen(PORT, () => {
+    console.log(`✅ Decision-Minutes Copilot API running at http://localhost:${PORT}`);
 });
