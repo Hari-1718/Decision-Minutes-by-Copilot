@@ -12,8 +12,8 @@ dotenv.config();
  * and parses the JSON response into our structured ExtractionResult.
  */
 export async function callLLM(transcript: string, systemPrompt: string): Promise<ExtractionResult> {
-    // Securely retrieve API Key from environment or fallback configuration
-    const apiKey = process.env.GOOGLE_API_KEY || "AIzaSyCSXuonMzND87APfMEHfz9rMu7lzvmVskA";
+    // Securely retrieve API Key from environment
+    const apiKey = process.env.GOOGLE_API_KEY;
 
     if (!apiKey) {
         console.error("❌ Critical Error: No Google API Key found.");
